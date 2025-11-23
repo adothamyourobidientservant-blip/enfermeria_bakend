@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  descripcion String?
+  usuarios    User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  nombre            String
+  apellido          String
+  email             String    @unique
+  password_hash     String    @db.VarChar(255)
+  role_id           Int
+  activo            Boolean   @default(true)
+  ultimavez         DateTime?
+  imagen_url        String?   @db.Text
+  role              Role      @relation(fields: [role_id], references: [id])
+  pacientes_creados Patient[] @relation("CreadoPor")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([email])
+  @@index([role_id])
+}
+
+model Patient {
+  id                  Int           @id @default(autoincrement())
+  nombre              String
+  apellido            String
+  fecha_nacimiento    DateTime
+  genero              String        // 'masculino', 'femenino', 'otro'
+  area                String        // 'estudiante', 'docente'
+  carrera             String
+  semestre            String?       // Solo para estudiantes
+  cedula              String        @unique @db.VarChar(20)
+  alergias            String?
+  medicamentos        String?
+  contacto_emergencia String?
+  telefono_emergencia String?
+  creado_por_user_id  Int?
+  creado_por          User?         @relation("CreadoPor", fields: [creado_por_user_id], references: [id])
+  signos_vitales      VitalSign[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([cedula])
+  @@index([area])
+  @@index([creado_por_user_id])
+}
+
+model VitalSign {
+  id                    Int      @id @default(autoincrement())
+  patient_id            Int
+  patient               Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
+  temperature           Float
+  oxygen_saturation     Float?   // Saturación de oxígeno
+  heart_rate            Int      // Ritmo cardiaco (bpm)
+  systolic_pressure     Int      // Presión sistólica
+  diastolic_pressure    Int      // Presión diastólica
+  notes                 String?  @db.Text
+  timestamp             DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([patient_id])
+  @@index([timestamp])
+}
+
