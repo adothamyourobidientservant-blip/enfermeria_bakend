@@ -27,7 +27,7 @@ cp .env.example .env
 Edita `.env` con:
 - Tu URL de conexión a PostgreSQL
 - Un JWT_SECRET seguro
-- El puerto del servidor (por defecto 3000)
+- El puerto del servidor (por defecto 3003)
 - La URL del frontend (por defecto http://localhost:5173)
 
 ### 4. Ejecutar migraciones de Prisma
@@ -67,7 +67,7 @@ npm run dev
 npm start
 ```
 
-El servidor estará disponible en `http://localhost:3000`
+El servidor estará disponible en `http://localhost:3003`
 
 ## 🔐 Credenciales de Prueba
 
