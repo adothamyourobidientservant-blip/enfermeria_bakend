@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -8,6 +5,31 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Patient {
+  id                  String        @id
+  nombre              String
+  apellido            String
+  fecha_nacimiento    DateTime
+  genero              String        // 'masculino', 'femenino', 'otro'
+  area                String        // 'estudiante', 'docente'
+  carrera             String
+  semestre            String?       // Solo para estudiantes
+  cedula              String        @unique @db.VarChar(20)
+  alergias            String?
+  medicamentos        String?
+  contacto_emergencia String?
+  telefono_emergencia String?
+  creado_por_user_id  Int?
+  creado_por          User?         @relation("CreadoPor", fields: [creado_por_user_id], references: [id])
+  signos_vitales      VitalSign[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([cedula])
+  @@index([area])
+  @@index([creado_por_user_id])
 }
 
 model Role {
@@ -38,39 +60,14 @@ model User {
   @@index([role_id])
 }
 
-model Patient {
-  id                  Int           @id @default(autoincrement())
-  nombre              String
-  apellido            String
-  fecha_nacimiento    DateTime
-  genero              String        // 'masculino', 'femenino', 'otro'
-  area                String        // 'estudiante', 'docente'
-  carrera             String
-  semestre            String?       // Solo para estudiantes
-  cedula              String        @unique @db.VarChar(20)
-  alergias            String?
-  medicamentos        String?
-  contacto_emergencia String?
-  telefono_emergencia String?
-  creado_por_user_id  Int?
-  creado_por          User?         @relation("CreadoPor", fields: [creado_por_user_id], references: [id])
-  signos_vitales      VitalSign[]
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-
-  @@index([cedula])
-  @@index([area])
-  @@index([creado_por_user_id])
-}
-
 model VitalSign {
-  id                    Int      @id @default(autoincrement())
-  patient_id            Int
+  id                    String   @id
+  patient_id            String
   patient               Patient  @relation(fields: [patient_id], references: [id], onDelete: Cascade)
   temperature           Float
   oxygen_saturation     Float?   // Saturación de oxígeno
   heart_rate            Int      // Ritmo cardiaco (bpm)
-  systolic_pressure     Int      // Presión sistólica
+  systolic_pressure      Int      // Presión sistólica
   diastolic_pressure    Int      // Presión diastólica
   notes                 String?  @db.Text
   timestamp             DateTime @default(now())
@@ -80,4 +77,3 @@ model VitalSign {
   @@index([patient_id])
   @@index([timestamp])
 }
-

@@ -1,4 +1,5 @@
 import prisma from '../config/database.js'
+import { randomUUID } from 'crypto'
 
 export const getAllPatients = async (req, res, next) => {
   try {
@@ -50,14 +51,13 @@ export const getAllPatients = async (req, res, next) => {
 export const getPatientById = async (req, res, next) => {
   try {
     const { id } = req.params
-    const idNum = parseInt(id)
 
-    if (isNaN(idNum)) {
+    if (!id) {
       return res.status(400).json({ error: 'ID de paciente inválido' })
     }
 
     const patient = await prisma.patient.findUnique({
-      where: { id: idNum },
+      where: { id },
       include: {
         creado_por: {
           select: {
@@ -117,6 +117,7 @@ export const createPatient = async (req, res, next) => {
 
     const patient = await prisma.patient.create({
       data: {
+        id: randomUUID(),
         nombre,
         apellido,
         fecha_nacimiento: new Date(fecha_nacimiento),
@@ -151,9 +152,8 @@ export const createPatient = async (req, res, next) => {
 export const updatePatient = async (req, res, next) => {
   try {
     const { id } = req.params
-    const idNum = parseInt(id)
 
-    if (isNaN(idNum)) {
+    if (!id) {
       return res.status(400).json({ error: 'ID de paciente inválido' })
     }
 
@@ -172,7 +172,7 @@ export const updatePatient = async (req, res, next) => {
     } = req.body
 
     const patient = await prisma.patient.update({
-      where: { id: idNum },
+      where: { id },
       data: {
         ...(nombre && { nombre }),
         ...(apellido && { apellido }),
@@ -206,14 +206,13 @@ export const updatePatient = async (req, res, next) => {
 export const deletePatient = async (req, res, next) => {
   try {
     const { id } = req.params
-    const patientId = parseInt(id)
 
-    if (isNaN(patientId)) {
+    if (!id) {
       return res.status(400).json({ error: 'ID de paciente inválido' })
     }
 
     await prisma.patient.delete({
-      where: { id: patientId }
+      where: { id }
     })
 
     res.status(204).send()
