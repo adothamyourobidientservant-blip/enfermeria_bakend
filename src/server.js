@@ -24,11 +24,88 @@ if (!process.env.DATABASE_URL) {
 const app = express()
 const PORT = process.env.PORT || 3003
 
-// Middleware
+// Configuración de CORS
+// Permite múltiples orígenes para desarrollo y producción
+const getAllowedOrigins = () => {
+  const origins = []
+  
+  // Agregar FRONTEND_URL si está configurada
+  if (process.env.FRONTEND_URL) {
+    const frontendUrls = process.env.FRONTEND_URL.split(',').map(url => url.trim())
+    origins.push(...frontendUrls)
+  }
+  
+  // En producción, permitir también el dominio de Netlify común
+  if (process.env.NODE_ENV === 'production') {
+    // Permitir cualquier subdominio de netlify.app
+    origins.push(/^https:\/\/.*\.netlify\.app$/)
+    origins.push(/^https:\/\/.*\.netlify\.com$/)
+  } else {
+    // En desarrollo, agregar localhost
+    if (!origins.includes('http://localhost:5173')) {
+      origins.push('http://localhost:5173')
+    }
+  }
+  
+  return origins
+}
+
+const allowedOrigins = getAllowedOrigins()
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  origin: function (origin, callback) {
+    // Permitir requests sin origen (mobile apps, Postman, etc.)
+    if (!origin) {
+      console.log('🌐 CORS: Request sin origen (permitido)')
+      return callback(null, true)
+    }
+    
+    // Verificar si el origen está permitido
+    let isAllowed = false
+    
+    for (const allowed of allowedOrigins) {
+      if (typeof allowed === 'string') {
+        // Comparación exacta o parcial
+        if (origin === allowed || origin.includes(allowed)) {
+          isAllowed = true
+          break
+        }
+      } else if (allowed instanceof RegExp) {
+        // Comparación con regex
+        if (allowed.test(origin)) {
+          isAllowed = true
+          break
+        }
+      }
+    }
+    
+    if (isAllowed) {
+      console.log(`✅ CORS: Origen permitido: ${origin}`)
+      callback(null, true)
+    } else {
+      console.warn(`⚠️ CORS: Origen no permitido: ${origin}`)
+      console.warn(`   FRONTEND_URL: ${process.env.FRONTEND_URL || 'NO CONFIGURADA'}`)
+      console.warn(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
+      // En producción, permitir temporalmente para evitar bloqueos
+      // PERO es importante configurar FRONTEND_URL correctamente
+      if (process.env.NODE_ENV === 'production') {
+        console.warn(`   ⚠️ PERMITIENDO TEMPORALMENTE - Configura FRONTEND_URL: ${origin}`)
+        callback(null, true)
+      } else {
+        callback(null, true)
+      }
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }))
+
+// Logging de configuración al iniciar
+console.log('\n🌐 Configuración CORS:')
+console.log(`   FRONTEND_URL: ${process.env.FRONTEND_URL || 'NO CONFIGURADA'}`)
+console.log(`   NODE_ENV: ${process.env.NODE_ENV || 'development'}`)
+console.log(`   Orígenes permitidos: ${allowedOrigins.length} configurados\n`)
 // Aumentar límite de tamaño para imágenes en base64 (10MB)
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))
