@@ -13,8 +13,25 @@ export const login = async (req, res, next) => {
     // Buscar usuario con su rol
     const user = await prisma.user.findUnique({
       where: { email },
-      include: {
-        role: true
+      select: {
+        id: true,
+        nombre: true,
+        apellido: true,
+        email: true,
+        password_hash: true,
+        role_id: true,
+        activo: true,
+        ultimavez: true,
+        imagen_url: true,
+        createdAt: true,
+        updatedAt: true,
+        role: {
+          select: {
+            id: true,
+            nombre: true,
+            descripcion: true
+          }
+        }
       }
     })
 

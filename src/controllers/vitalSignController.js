@@ -1,17 +1,17 @@
 import prisma from '../config/database.js'
+import { randomUUID } from 'crypto'
 
 export const getVitalSignsByPatient = async (req, res, next) => {
   try {
     const { patientId } = req.params
-    const patientIdNum = parseInt(patientId)
 
-    if (isNaN(patientIdNum)) {
+    if (!patientId) {
       return res.status(400).json({ error: 'ID de paciente inválido' })
     }
 
     // Verificar que el paciente existe
     const patient = await prisma.patient.findUnique({
-      where: { id: patientIdNum }
+      where: { id: patientId }
     })
 
     if (!patient) {
@@ -19,7 +19,7 @@ export const getVitalSignsByPatient = async (req, res, next) => {
     }
 
     const vitalSigns = await prisma.vitalSign.findMany({
-      where: { patient_id: patientIdNum },
+      where: { patient_id: patientId },
       orderBy: {
         timestamp: 'desc'
       }
@@ -34,9 +34,8 @@ export const getVitalSignsByPatient = async (req, res, next) => {
 export const createVitalSign = async (req, res, next) => {
   try {
     const { patientId } = req.params
-    const patientIdNum = parseInt(patientId)
 
-    if (isNaN(patientIdNum)) {
+    if (!patientId) {
       return res.status(400).json({ error: 'ID de paciente inválido' })
     }
 
@@ -93,7 +92,7 @@ export const createVitalSign = async (req, res, next) => {
 
     // Verificar que el paciente existe
     const patient = await prisma.patient.findUnique({
-      where: { id: patientIdNum }
+      where: { id: patientId }
     })
 
     if (!patient) {
@@ -102,7 +101,8 @@ export const createVitalSign = async (req, res, next) => {
 
     const vitalSign = await prisma.vitalSign.create({
       data: {
-        patient_id: patientIdNum,
+        id: randomUUID(),
+        patient_id: patientId,
         temperature: parseFloat(temperature),
         oxygen_saturation: oxygen_saturation ? parseFloat(oxygen_saturation) : null,
         heart_rate: parseInt(heart_rate),
@@ -132,9 +132,8 @@ export const createVitalSign = async (req, res, next) => {
 export const updateVitalSign = async (req, res, next) => {
   try {
     const { id } = req.params
-    const idNum = parseInt(id)
 
-    if (isNaN(idNum)) {
+    if (!id) {
       return res.status(400).json({ error: 'ID de signo vital inválido' })
     }
 
@@ -149,7 +148,7 @@ export const updateVitalSign = async (req, res, next) => {
     } = req.body
 
     const vitalSign = await prisma.vitalSign.update({
-      where: { id: idNum },
+      where: { id },
       data: {
         ...(temperature !== undefined && { temperature: parseFloat(temperature) }),
         ...(oxygen_saturation !== undefined && {
@@ -181,14 +180,13 @@ export const updateVitalSign = async (req, res, next) => {
 export const deleteVitalSign = async (req, res, next) => {
   try {
     const { id } = req.params
-    const idNum = parseInt(id)
 
-    if (isNaN(idNum)) {
+    if (!id) {
       return res.status(400).json({ error: 'ID de signo vital inválido' })
     }
 
     await prisma.vitalSign.delete({
-      where: { id: idNum }
+      where: { id }
     })
 
     res.status(204).send()

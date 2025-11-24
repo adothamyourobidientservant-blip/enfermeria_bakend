@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 
 const prisma = new PrismaClient()
 
@@ -67,6 +68,7 @@ async function main() {
   // Crear pacientes de ejemplo
   const pacientes = [
     {
+      id: randomUUID(),
       nombre: 'María',
       apellido: 'González',
       fecha_nacimiento: new Date('2005-05-15'),
@@ -78,6 +80,7 @@ async function main() {
       creado_por_user_id: enfermeroUser.id
     },
     {
+      id: randomUUID(),
       nombre: 'Carlos',
       apellido: 'Rodríguez',
       fecha_nacimiento: new Date('2004-08-20'),
@@ -89,6 +92,7 @@ async function main() {
       creado_por_user_id: enfermeroUser.id
     },
     {
+      id: randomUUID(),
       nombre: 'Ana',
       apellido: 'Martínez',
       fecha_nacimiento: new Date('2003-12-10'),
@@ -100,6 +104,7 @@ async function main() {
       creado_por_user_id: enfermeroUser.id
     },
     {
+      id: randomUUID(),
       nombre: 'Luis',
       apellido: 'Fernández',
       fecha_nacimiento: new Date('2002-03-25'),
@@ -111,6 +116,7 @@ async function main() {
       creado_por_user_id: enfermeroUser.id
     },
     {
+      id: randomUUID(),
       nombre: 'Sofía',
       apellido: 'López',
       fecha_nacimiento: new Date('2001-07-12'),
@@ -157,6 +163,7 @@ async function main() {
       
       await prisma.vitalSign.create({
         data: {
+          id: randomUUID(),
           patient_id: paciente.id,
           ...vitalSign
         }
