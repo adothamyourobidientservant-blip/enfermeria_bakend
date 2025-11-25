@@ -52,7 +52,7 @@ export const getStatistics = async (req, res, next) => {
       }
     })
 
-    // Agrupar por día - contando pacientes únicos atendidos cada día
+    // Agrupar por día - contando cada toma de muestra (cada registro de signos vitales)
     const patientsByDayMap = new Map()
     
     // Inicializar todos los días de los últimos 30 días con 0
@@ -61,25 +61,25 @@ export const getStatistics = async (req, res, next) => {
       date.setDate(date.getDate() - i)
       date.setHours(0, 0, 0, 0)
       const dateKey = date.toISOString().split('T')[0]
-      patientsByDayMap.set(dateKey, new Set()) // Usar Set para contar pacientes únicos
+      patientsByDayMap.set(dateKey, 0) // Contador de tomas de muestra
     }
 
-    // Contar pacientes únicos atendidos por día
+    // Contar cada toma de muestra (cada registro de signos vitales) por día
     vitalSigns.forEach(vitalSign => {
       const vitalSignDate = new Date(vitalSign.timestamp)
       vitalSignDate.setHours(0, 0, 0, 0)
       const dateKey = vitalSignDate.toISOString().split('T')[0]
       
       if (patientsByDayMap.has(dateKey)) {
-        patientsByDayMap.get(dateKey).add(vitalSign.patient_id)
+        patientsByDayMap.set(dateKey, patientsByDayMap.get(dateKey) + 1) // Incrementar contador de tomas
       }
     })
 
     // Convertir a array para el frontend y ordenar por fecha
     const patientsByDayArray = Array.from(patientsByDayMap.entries())
-      .map(([date, patientSet]) => ({
+      .map(([date, count]) => ({
         date,
-        count: patientSet.size // Contar pacientes únicos
+        count: count // Contar todas las tomas de muestra (no solo pacientes únicos)
       }))
       .sort((a, b) => a.date.localeCompare(b.date))
 

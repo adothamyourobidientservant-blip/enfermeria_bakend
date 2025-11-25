@@ -64,7 +64,7 @@ export const login = async (req, res, next) => {
         role: user.role.nombre
       },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+      { expiresIn: process.env.JWT_EXPIRES_IN || '5m' }
     )
 
     // Enviar respuesta sin password_hash
