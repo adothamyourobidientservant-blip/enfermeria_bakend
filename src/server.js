@@ -5,6 +5,7 @@ import authRoutes from './routes/authRoutes.js'
 import patientRoutes from './routes/patientRoutes.js'
 import vitalSignRoutes from './routes/vitalSignRoutes.js'
 import userRoutes from './routes/userRoutes.js'
+import esp32Routes from './routes/esp32Routes.js'
 import statisticsRoutes from './routes/statisticsRoutes.js'
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js'
 import { testConnection } from './config/database.js'
@@ -144,6 +145,7 @@ app.use('/api/patients', patientRoutes)
 app.use('/api/vital-signs', vitalSignRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/statistics', statisticsRoutes)
+app.use('/api/esp32', esp32Routes)
 
 // Error handlers
 app.use(notFoundHandler)

@@ -19,6 +19,15 @@ export const getAllPatients = async (req, res, next) => {
       where.area = area
     }
 
+    // Si el usuario es admin, devolver todos los signos vitales; si no, solo el último
+    const isAdmin = req.user?.role === 'administrador'
+    const vitalSignsInclude = {
+      orderBy: {
+        timestamp: 'desc'
+      },
+      ...(isAdmin ? {} : { take: 1 }) // Si es admin, devolver todos; si no, solo el último
+    }
+
     const patients = await prisma.patient.findMany({
       where,
       include: {
@@ -30,12 +39,7 @@ export const getAllPatients = async (req, res, next) => {
             email: true
           }
         },
-        signos_vitales: {
-          orderBy: {
-            timestamp: 'desc'
-          },
-          take: 1 // Solo el último registro
-        }
+        signos_vitales: vitalSignsInclude
       },
       orderBy: {
         createdAt: 'desc'
