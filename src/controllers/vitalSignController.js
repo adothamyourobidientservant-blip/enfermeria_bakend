@@ -62,9 +62,7 @@ export const createVitalSign = async (req, res, next) => {
     }
 
     // Validar rangos básicos
-    if (temperature < 30 || temperature > 45) {
-      return res.status(400).json({ error: 'La temperatura debe estar entre 30°C y 45°C' })
-    }
+    // Validación de temperatura eliminada - sin restricciones
 
     if (heart_rate < 40 || heart_rate > 200) {
       return res.status(400).json({ error: 'El ritmo cardiaco debe estar entre 40 y 200 bpm' })
