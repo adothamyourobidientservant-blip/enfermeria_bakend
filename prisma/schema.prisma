@@ -13,10 +13,11 @@ model Patient {
   apellido            String
   fecha_nacimiento    DateTime
   genero              String        // 'masculino', 'femenino', 'otro'
-  area                String        // 'estudiante', 'docente'
+  area                String        // 'estudiante', 'docente', 'administrativo', 'comunidad'
   carrera             String
   semestre            String?       // Solo para estudiantes
   cedula              String        @unique @db.VarChar(20)
+  direccion           String?       @db.Text
   alergias            String?
   medicamentos        String?
   contacto_emergencia String?

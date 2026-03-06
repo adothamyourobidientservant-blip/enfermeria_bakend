@@ -4,7 +4,8 @@ import {
   getPatientById,
   createPatient,
   updatePatient,
-  deletePatient
+  deletePatient,
+  checkCedulaExists
 } from '../controllers/patientController.js'
 import { authenticateToken, requireRole } from '../middleware/auth.js'
 
@@ -15,6 +16,7 @@ router.use(authenticateToken)
 
 // Solo enfermeros y administradores pueden gestionar pacientes
 router.get('/', getAllPatients)
+router.get('/check-cedula', checkCedulaExists)
 router.get('/:id', getPatientById)
 router.post('/', requireRole('enfermero', 'administrador'), createPatient)
 router.put('/:id', requireRole('enfermero', 'administrador'), updatePatient)
