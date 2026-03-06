@@ -52,6 +52,29 @@ export const getAllPatients = async (req, res, next) => {
   }
 }
 
+/** Verificar si una cédula ya existe en la BD (consulta directa, evita desajustes con listado) */
+export const checkCedulaExists = async (req, res, next) => {
+  try {
+    const { cedula: cedulaParam, excludeId } = req.query
+    if (!cedulaParam || typeof cedulaParam !== 'string') {
+      return res.status(400).json({ error: 'Parámetro cedula requerido' })
+    }
+    const cedulaNormalizada = String(cedulaParam).replace(/\D/g, '').trim()
+    if (cedulaNormalizada.length < 6) {
+      return res.json({ exists: false })
+    }
+    const whereClause = { cedula: cedulaNormalizada }
+    if (excludeId && typeof excludeId === 'string' && excludeId.trim()) {
+      whereClause.id = { not: excludeId.trim() }
+    }
+    const existing = await prisma.patient.findFirst({ where: whereClause })
+    const exists = !!existing && existing.cedula !== 'ESP32_TEMP'
+    return res.json({ exists })
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const getPatientById = async (req, res, next) => {
   try {
     const { id } = req.params
@@ -100,6 +123,7 @@ export const createPatient = async (req, res, next) => {
       carrera,
       semestre,
       cedula,
+      direccion,
       alergias,
       medicamentos,
       contacto_emergencia,
@@ -117,7 +141,18 @@ export const createPatient = async (req, res, next) => {
     }
 
     // Normalizar cédula (solo números)
-    const cedulaNormalizada = cedula.replace(/\D/g, '')
+    const cedulaNormalizada = String(cedula).replace(/\D/g, '').trim()
+
+    // Comprobar explícitamente si ya existe (evita confusión con P2002)
+    const yaExiste = await prisma.patient.findFirst({
+      where: { cedula: cedulaNormalizada }
+    })
+    if (yaExiste) {
+      return res.status(409).json({
+        error: 'Esta cédula ya está registrada en el sistema',
+        field: 'cedula'
+      })
+    }
 
     const patient = await prisma.patient.create({
       data: {
@@ -130,6 +165,7 @@ export const createPatient = async (req, res, next) => {
         carrera,
         semestre: area === 'estudiante' ? semestre : null,
         cedula: cedulaNormalizada,
+        direccion: direccion || null,
         alergias,
         medicamentos,
         contacto_emergencia,
@@ -169,6 +205,7 @@ export const updatePatient = async (req, res, next) => {
       area,
       carrera,
       semestre,
+      direccion,
       alergias,
       medicamentos,
       contacto_emergencia,
@@ -185,6 +222,7 @@ export const updatePatient = async (req, res, next) => {
         ...(area && { area }),
         ...(carrera && { carrera }),
         ...(semestre !== undefined && { semestre: area === 'estudiante' ? semestre : null }),
+        ...(direccion !== undefined && { direccion: direccion || null }),
         ...(alergias !== undefined && { alergias }),
         ...(medicamentos !== undefined && { medicamentos }),
         ...(contacto_emergencia !== undefined && { contacto_emergencia }),
